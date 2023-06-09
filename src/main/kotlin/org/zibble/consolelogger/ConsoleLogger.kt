@@ -28,8 +28,13 @@ class ConsoleLogger(config: Config) {
         lateinit var instance: ConsoleLogger
     }
 
+    val user = if (config.redis.username.isNullOrBlank()) {
+        config.redis.password
+    } else {
+        config.redis.username + ":" + config.redis.password
+    }
     val redis: RedisClient =
-        RedisClient.create("redis://${config.redis.password}@${config.redis.host}:${config.redis.port}")
+        RedisClient.create("redis://$user@${config.redis.host}:${config.redis.port}")
     val discordHook: DiscordHook = DiscordHook(
         config.discordToken!!,
         config.servers,

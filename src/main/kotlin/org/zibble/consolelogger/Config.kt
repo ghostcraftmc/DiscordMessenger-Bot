@@ -152,6 +152,9 @@ class Config {
         @SerializedName("port")
         var port = 0
 
+        @SerializedName("username")
+        var username: String? = null
+
         @SerializedName("password")
         var password: String? = null
     }
