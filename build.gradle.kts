@@ -27,13 +27,25 @@ tasks {
     }
     
     shadowJar {
+        archiveFileName.set("ConsoleLogger.jar")
         minimize()
     }
 
     jar {
         manifest {
-            attributes["Main-Class"] = "org.zibble.org.zibble.consolelogger.ConsoleLoggerKt"
+            attributes["Main-Class"] = "org.zibble.consolelogger.ConsoleLoggerKt"
         }
+    }
+
+    compileKotlin {
+        kotlinOptions.suppressWarnings = true
+        kotlinOptions.jvmTarget = "17"
+        kotlinOptions.freeCompilerArgs = listOf("-Xjsr305=strict", "-Xjvm-default=all")
+    }
+
+    processResources {
+        filteringCharset = Charsets.UTF_8.name()
+        duplicatesStrategy = DuplicatesStrategy.INCLUDE
     }
 }
 
