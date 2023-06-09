@@ -1,0 +1,17 @@
+{
+  "ptero_url": "",
+  "ptero_token": "",
+  "discord_token": "",
+  "guild_id": "",
+  "command_prefix": "-",
+  "server-console-mappings": [],
+  "redis": {
+    "host": "",
+    "port": 6379,
+    "password": ""
+  },
+  "listen-command": [],
+  "legacy-command": [],
+  "buttons": [],
+  "select-menu": []
+}
