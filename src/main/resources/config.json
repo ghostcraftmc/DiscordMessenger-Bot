@@ -1,9 +1,9 @@
 {
-  "ptero_url": "",
-  "ptero_token": "",
-  "discord_token": "",
-  "guild_id": "",
-  "command_prefix": "-",
+  "ptero-url": "",
+  "ptero-token": "",
+  "discord-token": "",
+  "guild-id": "",
+  "command-prefix": "-",
   "server-console-mappings": [],
   "redis": {
     "host": "",
@@ -11,8 +11,10 @@
     "username": "",
     "password": ""
   },
+  "webhooks": [],
   "listen-command": [],
   "legacy-command": [],
+  "listen-channel": [],
   "buttons": [],
   "select-menu": []
 }

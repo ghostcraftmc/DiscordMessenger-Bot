@@ -15,19 +15,19 @@ import net.dv8tion.jda.api.interactions.commands.build.SubcommandData
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandGroupData
 import net.dv8tion.jda.api.utils.messages.MessageCreateData
 import okhttp3.internal.threadFactory
-import org.zibble.consolelogger.components.action.WebhookUrl
 import java.util.concurrent.CompletableFuture
-import java.util.concurrent.Executors
 
 class DiscordHook(
     token: String,
-    servers: List<Config.Servers>,
+    servers: List<Servers>,
     prefix: String,
     guildId: String,
-    commands: List<Config.SlashCommand>,
+    webhooks: Map<Int, String>,
+    listenableChannels: List<Long>,
+    commands: List<SlashCommand>,
     legacyCommands: List<String>,
-    button: List<Config.Button>,
-    selectMenu: List<Config.SelectMenu>
+    button: List<Button>,
+    selectMenu: List<SelectMenu>
 ) {
 
     companion object {
@@ -37,31 +37,35 @@ class DiscordHook(
     var jda: JDA
     val channels: MutableMap<TextChannel, Role> = HashMap()
     val guild: Guild
-    val webhookClients: MutableMap<WebhookUrl, WebhookClient> = HashMap()
+    val webhookClients: MutableMap<Int, WebhookClient> = HashMap()
 
     init {
         discordHook = this
         jda = JDABuilder
             .createDefault(token)
-            .addEventListeners(DiscordListener(this, prefix, commands, legacyCommands, button, selectMenu))
+            .addEventListeners(DiscordListener(this, prefix, listenableChannels, commands, legacyCommands, button, selectMenu))
             .build()
             .awaitReady()
 
         guild = jda.getGuildById(guildId)!!
 
+        for (webhook in webhooks) {
+            registerWebhook(webhook.key, webhook.value)
+        }
+
         for (cmd in commands) {
-            val slashCmd = Commands.slash(cmd.name!!, cmd.description!!)
+            val slashCmd = Commands.slash(cmd.name, cmd.description)
             if (cmd.subGroup.isNotEmpty()) {
                 slashCmd.addSubcommandGroups(cmd.subGroup.map {
-                    SubcommandGroupData(it.name!!, it.description!!).apply {
+                    SubcommandGroupData(it.name, it.description).apply {
                         if (it.subCommand.isNotEmpty()) {
                             slashCmd.addSubcommands(it.subCommand.map {
-                                SubcommandData(it.name!!, it.description!!).apply {
+                                SubcommandData(it.name, it.description).apply {
                                     for (option in it.options) {
                                         this.addOption(
                                             OptionType.fromKey(option.type.key),
-                                            option.name!!,
-                                            option.description!!,
+                                            option.name,
+                                            option.description,
                                             option.required,
                                             option.autoComplete
                                         )
@@ -74,12 +78,12 @@ class DiscordHook(
             }
             if (cmd.subCommand.isNotEmpty()) {
                 slashCmd.addSubcommands(cmd.subCommand.map {
-                    SubcommandData(it.name!!, it.description!!).apply {
+                    SubcommandData(it.name, it.description).apply {
                         for (option in it.options) {
                             this.addOption(
                                 OptionType.fromKey(option.type.key),
-                                option.name!!,
-                                option.description!!,
+                                option.name,
+                                option.description,
                                 option.required,
                                 option.autoComplete
                             )
@@ -91,8 +95,8 @@ class DiscordHook(
                 for (option in cmd.options) {
                     slashCmd.addOption(
                         OptionType.fromKey(option.type.key),
-                        option.name!!,
-                        option.description!!,
+                        option.name,
+                        option.description,
                         option.required,
                         option.autoComplete
                     )
@@ -102,8 +106,8 @@ class DiscordHook(
         }
 
         for (server in servers) {
-            jda.getTextChannelById(server.channelID!!)?.let { channel: TextChannel ->
-                jda.getRoleById(server.authorizationRoleID!!)?.let {
+            jda.getTextChannelById(server.channelID)?.let { channel: TextChannel ->
+                jda.getRoleById(server.authorizationRoleID)?.let {
                     channels[channel] = it
                 }
             }
@@ -115,18 +119,18 @@ class DiscordHook(
         channel?.sendMessage(message)?.queue()
     }
 
-    fun registerWebhook(webhookUrl: WebhookUrl): Boolean {
-        if (webhookClients.containsKey(webhookUrl)) return false
-        val client = WebhookClientBuilder(webhookUrl.url)
-            .setThreadFactory(threadFactory("WebhookClient", false))
+    private fun registerWebhook(id: Int, webhookUrl: String): Boolean {
+        if (webhookClients.containsKey(id)) return false
+        val client = WebhookClientBuilder(webhookUrl)
+            .setThreadFactory(threadFactory("WebhookClient $id", false))
             .setWait(true)
             .build()
-        webhookClients[webhookUrl] = client
+        webhookClients[id] = client
         return true
     }
 
-    fun sendWebhookMessage(webhookUrl: WebhookUrl, message: WebhookMessage): CompletableFuture<ReadonlyMessage> {
-        val webhook = webhookClients[webhookUrl] ?: return CompletableFuture.completedFuture(null)
+    fun sendWebhookMessage(webhookId: Int, message: WebhookMessage): CompletableFuture<ReadonlyMessage> {
+        val webhook = webhookClients[webhookId] ?: return CompletableFuture.completedFuture(null)
         return webhook.send(message)
     }
 

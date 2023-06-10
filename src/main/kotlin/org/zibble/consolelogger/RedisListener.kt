@@ -4,7 +4,7 @@ import com.google.gson.JsonObject
 import io.lettuce.core.api.async.RedisAsyncCommands
 import io.lettuce.core.pubsub.RedisPubSubAdapter
 import org.zibble.consolelogger.components.action.Action
-import org.zibble.consolelogger.components.action.reply.ActionReply
+import org.zibble.consolelogger.components.action.SendableAction
 import org.zibble.consolelogger.components.messagable.ButtonInteraction
 import org.zibble.consolelogger.components.messagable.Command
 import org.zibble.consolelogger.components.messagable.SelectMenuInteraction
@@ -17,7 +17,6 @@ class RedisListener : RedisPubSubAdapter<String, String>() {
     companion object {
         const val COMMAND_REPLY = "commandReply"
         const val COMMAND = "command"
-        const val ACTION_REPLY = "actionReply"
         const val BUTTON_INTERACTION = "buttonInteraction"
         const val BUTTON_REPLY = "buttonReply"
         const val SELECT_MENU_INTERACTION = "selectMenuInteraction"
@@ -39,16 +38,16 @@ class RedisListener : RedisPubSubAdapter<String, String>() {
             )
         }
 
-        fun sendCommand(command: Command, callback: (CommandReply) -> Unit) {
+        fun sendCommand(command: Command, callback: (CommandReply) -> Unit = {}) {
             INSTANCE.commandsCallbacks[command.getId()] = callback
             sendMessage(JsonObject().apply {
                 add(COMMAND, command.toJson())
             })
         }
 
-        fun sendActionReply(action: Action, reply: JsonObject) {
+        fun sendAction(action: SendableAction) {
             sendMessage(JsonObject().apply {
-                add(ACTION_REPLY, ActionReply(action.id, reply).toJson())
+                add(action.key, action.toJson())
             })
         }
 
@@ -95,14 +94,16 @@ class RedisListener : RedisPubSubAdapter<String, String>() {
                 selectMenuCallback.remove(it.button.id)?.invoke(it)
             }
         } else {
-            Action.actionTypes.forEach { (k, v) ->
+            Action.readableActions.forEach { (k, v) ->
                 if (json.has(k)) {
                     println("Received action from redis:\n$message")
                     val action = ConsoleLogger.Constant.GSON.fromJson(json[k], v)
-                    val success = action.handle(DiscordHook.discordHook)
+                    val success = runCatching {
+                        action.handle(DiscordHook.discordHook)
+                    }.getOrElse { false }
 
                     if (!success) {
-                        println("Error handling action: ${action.getName()}")
+                        println("Error handling action: ${action.name}")
                     }
                 }
             }

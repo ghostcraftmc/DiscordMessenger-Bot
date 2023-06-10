@@ -1,26 +1,24 @@
-package org.zibble.consolelogger.components.action
+package org.zibble.consolelogger.components.action.readable
 
 import com.google.gson.JsonObject
 import org.zibble.consolelogger.DiscordHook
 import org.zibble.consolelogger.RedisListener
+import org.zibble.consolelogger.components.action.ReadableAction
+import org.zibble.consolelogger.components.action.sendable.ActionReplyAction
 import org.zibble.consolelogger.components.readable.DiscordMessage
 
 class SendMessageAction(
     id: Long,
     val channelId: Long,
     val message: DiscordMessage
-) : Action(id) {
-
-    override fun getKey(): String = "sendMessage"
-
-    override fun getName(): String = "Send Message"
+) : ReadableAction(id, "sendMessage", "Send Message") {
 
     override fun handle(discordHook: DiscordHook): Boolean {
         discordHook.jda.getTextChannelById(channelId)?.let {
             it.sendMessage(message.toNative()).queue { msg ->
-                RedisListener.sendActionReply(this, JsonObject().apply {
+                RedisListener.sendAction(ActionReplyAction(id, JsonObject().apply {
                     addProperty("id", msg.id)
-                })
+                }))
             }
             return true
         }

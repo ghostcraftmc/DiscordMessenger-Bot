@@ -3,160 +3,73 @@ package org.zibble.consolelogger
 import com.google.gson.annotations.SerializedName
 import org.zibble.consolelogger.components.messagable.OptionType
 
-class Config {
+data class Config(
+    @SerializedName("ptero-url") val pteroURL: String,
+    @SerializedName("ptero-token") val pteroToken: String,
+    @SerializedName("discord-token") val discordToken: String,
+    @SerializedName("guild-id") val guildId: String,
+    @SerializedName("command-prefix") val prefix: String,
+    @SerializedName("server-console-mappings") val servers: List<Servers>,
+    @SerializedName("redis") val redis: Redis,
+    @SerializedName("webhook-mapping") val webhooks: Map<String, String>,
+    @SerializedName("listen-command") val listenableCommands: List<SlashCommand>,
+    @SerializedName("legacy-command") val legacyCommands: List<String>,
+    @SerializedName("listen-channel") val listenableChannels: List<Long>,
+    @SerializedName("buttons") val buttons: List<Button>,
+    @SerializedName("select-menu") val selectMenu: List<SelectMenu>
+)
 
-    @SerializedName("ptero_url")
-    var pteroURL: String? = null
+data class SelectMenu(
+    @SerializedName("id") val id: String,
+    @SerializedName("replyable") val replyable: Boolean,
+    @SerializedName("ephemeral") val ephemeral: Boolean
+)
 
-    @SerializedName("ptero_token")
-    var pteroToken: String? = null
+data class Button(
+    @SerializedName("id") val id: String,
+    @SerializedName("replyable") val replyable: Boolean,
+    @SerializedName("ephemeral") val ephemeral: Boolean
+)
 
-    @SerializedName("discord_token")
-    var discordToken: String? = null
+data class SlashCommand(
+    @SerializedName("name") val name: String,
+    @SerializedName("description") val description: String,
+    @SerializedName("sub-group") val subGroup: ArrayList<SubCommandGroup>,
+    @SerializedName("sub-command") val subCommand: ArrayList<SubCommand>,
+    @SerializedName("options") val options: List<Option>,
+    @SerializedName("ephemeral") val ephemeral: Boolean
+)
 
-    @SerializedName("guild_id")
-    var guildId: String? = null
+data class SubCommandGroup(
+    @SerializedName("name") val name: String,
+    @SerializedName("description") val description: String,
+    @SerializedName("sub-command") val subCommand: ArrayList<SubCommand>
+)
 
-    @SerializedName("command_prefix")
-    var prefix: String? = null
+data class SubCommand(
+    @SerializedName("name") val name: String,
+    @SerializedName("description") val description: String,
+    @SerializedName("options") val options: List<Option>
+)
 
-    @SerializedName("server-console-mappings")
-    var servers: List<Servers> = ArrayList()
+data class Option(
+    @SerializedName("type") val type: OptionType,
+    @SerializedName("name") val name: String,
+    @SerializedName("description") val description: String,
+    @SerializedName("required") val required: Boolean,
+    @SerializedName("auto-complete") val autoComplete: Boolean,
+    @SerializedName("auto-fills") val autoFills: List<String>
+)
 
-    @SerializedName("redis")
-    var redis = Redis()
+data class Servers(
+    @SerializedName("server-id") val serverID: String,
+    @SerializedName("channel-id") val channelID: String,
+    @SerializedName("authorization-role-id") val authorizationRoleID: String
+)
 
-    @SerializedName("listen-command")
-    var listenableCommands: List<SlashCommand> = ArrayList()
-
-    @SerializedName("legacy-command")
-    var legacyCommands: List<String> = ArrayList()
-
-    @SerializedName("buttons")
-    var buttons: List<Button> = ArrayList()
-
-    @SerializedName("select-menu")
-    var selectMenu: List<SelectMenu> = ArrayList()
-
-    class SelectMenu {
-
-        @SerializedName("id")
-        var id: String? = null
-
-        @SerializedName("replyable")
-        var replyable = false
-
-        @SerializedName("ephemeral")
-        var ephemeral = false
-
-    }
-
-    class Button {
-
-        @SerializedName("id")
-        var id: String? = null
-
-        @SerializedName("replyable")
-        var replyable = false
-
-        @SerializedName("ephemeral")
-        var ephemeral = false
-
-    }
-
-    class SlashCommand {
-
-        @SerializedName("name")
-        var name: String? = null
-
-        @SerializedName("description")
-        var description: String? = null
-
-        @SerializedName("sub-group")
-        var subGroup: ArrayList<SubCommandGroup> = ArrayList()
-
-        @SerializedName("sub-command")
-        var subCommand: ArrayList<SubCommand> = ArrayList()
-
-        @SerializedName("options")
-        var options: ArrayList<Option> = ArrayList()
-
-        @SerializedName("ephemeral")
-        var ephemeral = false
-
-        class SubCommandGroup {
-
-            @SerializedName("name")
-            var name: String? = null
-
-            @SerializedName("description")
-            var description: String? = null
-
-            @SerializedName("sub-command")
-            var subCommand: ArrayList<SubCommand> = ArrayList()
-
-        }
-
-        class SubCommand {
-
-            @SerializedName("name")
-            var name: String? = null
-
-            @SerializedName("description")
-            var description: String? = null
-
-            @SerializedName("options")
-            var options: ArrayList<Option> = ArrayList()
-
-        }
-
-        class Option {
-
-            @SerializedName("type")
-            var type: OptionType = OptionType.UNKNOWN
-
-            @SerializedName("name")
-            var name: String? = null
-
-            @SerializedName("description")
-            var description: String? = null
-
-            @SerializedName("required")
-            var required = false
-
-            @SerializedName("auto-complete")
-            var autoComplete = false
-
-            @SerializedName("auto-fills")
-            var autoFills: List<String> = ArrayList()
-
-        }
-
-    }
-
-    class Servers {
-        @SerializedName("server_id")
-        var serverID: String? = null
-
-        @SerializedName("channel_id")
-        var channelID: String? = null
-
-        @SerializedName("authorization_role_id")
-        var authorizationRoleID: String? = null
-    }
-
-    class Redis {
-        @SerializedName("host")
-        var host: String? = null
-
-        @SerializedName("port")
-        var port = 0
-
-        @SerializedName("username")
-        var username: String? = null
-
-        @SerializedName("password")
-        var password: String? = null
-    }
-
-}
+data class Redis(
+    @SerializedName("host") val host: String,
+    @SerializedName("port") val port: Int,
+    @SerializedName("username") val username: String,
+    @SerializedName("password") val password: String
+)

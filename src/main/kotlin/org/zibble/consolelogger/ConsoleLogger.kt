@@ -29,7 +29,7 @@ class ConsoleLogger(config: Config) {
         lateinit var instance: ConsoleLogger
     }
 
-    val user = if (config.redis.username.isNullOrBlank()) {
+    val user = if (config.redis.username.isBlank()) {
         config.redis.password
     } else {
         config.redis.username + ":" + config.redis.password
@@ -37,10 +37,12 @@ class ConsoleLogger(config: Config) {
     val redis: RedisClient =
         RedisClient.create("redis://$user@${config.redis.host}:${config.redis.port}")
     val discordHook: DiscordHook = DiscordHook(
-        config.discordToken!!,
+        config.discordToken,
         config.servers,
-        config.prefix!!,
-        config.guildId!!,
+        config.prefix,
+        config.guildId,
+        config.webhooks.mapKeys { it.key.toInt() },
+        config.listenableChannels,
         config.listenableCommands,
         config.legacyCommands,
         config.buttons,
@@ -58,8 +60,8 @@ class ConsoleLogger(config: Config) {
 
     fun registerPteroHook(config: Config) {
         pteroHook = PteroHook(
-            config.pteroURL!!,
-            config.pteroToken!!,
+            config.pteroURL,
+            config.pteroToken,
             config.servers
         )
 
@@ -86,7 +88,7 @@ fun main() {
     val config = ConsoleLogger.Constant.GSON.fromJson(file.readText(), Config::class.java)
     ConsoleLogger.Constant.instance = ConsoleLogger(config)
 
-    if (!config.pteroToken.isNullOrBlank()) {
+    if (config.pteroToken.isNotBlank()) {
         ConsoleLogger.Constant.instance.registerPteroHook(config)
     }
 

@@ -21,6 +21,22 @@ data class DiscordEmbed(
     val fields: Collection<EmbedField>
 ) : NativeSerializer<MessageEmbed>, WebhookSerializable<WebhookEmbed> {
 
+    companion object {
+        fun fromNative(data: MessageEmbed): DiscordEmbed {
+            return DiscordEmbed(
+                data.timestamp,
+                data.color,
+                data.description,
+                data.thumbnail?.url,
+                data.image?.url,
+                data.footer?.let { EmbedFooter.fromNative(it) },
+                data.title?.let { EmbedTitle(it, data.url) },
+                data.author?.let { EmbedAuthor.fromNative(it) },
+                data.fields.map { EmbedField.fromNative(it) }
+            )
+        }
+    }
+
     override fun toNative(): MessageEmbed {
         val builder = EmbedBuilder()
         if (timestamp != null) {
@@ -105,6 +121,12 @@ data class DiscordEmbed(
     data class EmbedFooter(val text: String, val icon: String?) :
         NativeSerializer<MessageEmbed.Footer>, WebhookSerializable<WebhookEmbed.EmbedFooter> {
 
+        companion object {
+            fun fromNative(data: MessageEmbed.Footer): EmbedFooter {
+                return EmbedFooter(data.text ?: "", data.iconUrl)
+            }
+        }
+
         override fun toNative(): MessageEmbed.Footer {
             return MessageEmbed.Footer(text, icon, null)
         }
@@ -118,6 +140,12 @@ data class DiscordEmbed(
     data class EmbedAuthor(val name: String, val iconUrl: String?, val url: String?) :
         NativeSerializer<MessageEmbed.AuthorInfo>, WebhookSerializable<WebhookEmbed.EmbedAuthor> {
 
+        companion object {
+            fun fromNative(data: MessageEmbed.AuthorInfo): EmbedAuthor {
+                return EmbedAuthor(data.name ?: "", data.iconUrl, data.url)
+            }
+        }
+
         override fun toNative(): MessageEmbed.AuthorInfo {
             return MessageEmbed.AuthorInfo(name, url, iconUrl, null)
         }
@@ -130,6 +158,12 @@ data class DiscordEmbed(
 
     data class EmbedField(val name: String, val value: String, val isInline: Boolean = false) :
         NativeSerializer<MessageEmbed.Field>, WebhookSerializable<WebhookEmbed.EmbedField> {
+
+        companion object {
+            fun fromNative(data: MessageEmbed.Field): EmbedField {
+                return EmbedField(data.name ?: "", data.value ?: "", data.isInline)
+            }
+        }
 
         override fun toNative(): MessageEmbed.Field {
             return MessageEmbed.Field(name, value, isInline)

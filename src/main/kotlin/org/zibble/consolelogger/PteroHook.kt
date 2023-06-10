@@ -10,7 +10,7 @@ import java.time.Instant
 import java.time.temporal.ChronoUnit
 import java.util.*
 
-class PteroHook(url: String, token: String, servers: List<Config.Servers>) {
+class PteroHook(url: String, token: String, servers: List<Servers>) {
 
     companion object {
         lateinit var pteroHook: PteroHook
@@ -23,7 +23,7 @@ class PteroHook(url: String, token: String, servers: List<Config.Servers>) {
         pteroHook = this
         client = PteroBuilder.createClient(url, token)
         for (server in servers) {
-            this.servers[server.channelID!!] = client.retrieveServerByIdentifier(server.serverID).execute()
+            this.servers[server.channelID] = client.retrieveServerByIdentifier(server.serverID).execute()
         }
     }
 

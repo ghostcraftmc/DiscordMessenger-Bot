@@ -1,5 +1,6 @@
 package org.zibble.consolelogger.components.readable
 
+import net.dv8tion.jda.api.entities.Message
 import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder
 import net.dv8tion.jda.api.utils.messages.MessageCreateData
 import net.dv8tion.jda.api.utils.messages.MessageEditBuilder
@@ -16,6 +17,18 @@ data class DiscordMessage(
     val allowedMentions: Collection<MentionType>,
     val actionRow: Collection<ActionRow>
 ) : JsonSerializable, NativeSerializer<MessageCreateData> {
+
+    companion object {
+        fun fromNative(data: Message): DiscordMessage {
+            return DiscordMessage(
+                data.contentRaw,
+                data.embeds.map { DiscordEmbed.fromNative(it) },
+                data.isTTS,
+                setOf(MentionType.EVERYONE),
+                data.actionRows.map { ActionRow.fromNative(it) }
+            )
+        }
+    }
 
     override fun toNative(): MessageCreateData {
         return MessageCreateBuilder()

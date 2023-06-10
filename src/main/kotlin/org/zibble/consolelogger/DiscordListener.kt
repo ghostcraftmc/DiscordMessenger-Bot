@@ -8,46 +8,61 @@ import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent
 import net.dv8tion.jda.api.events.interaction.component.StringSelectInteractionEvent
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import net.dv8tion.jda.api.hooks.ListenerAdapter
+import org.zibble.consolelogger.components.action.sendable.ChannelMessageAction
 import org.zibble.consolelogger.components.entity.*
 import org.zibble.consolelogger.components.messagable.*
+import org.zibble.consolelogger.components.readable.DiscordMessage
 
 class DiscordListener(
     val discordHook: DiscordHook,
     val prefix: String,
-    val commands: List<Config.SlashCommand>,
+    val listenableChannel: List<Long>,
+    val commands: List<SlashCommand>,
     val legacyCommands: List<String>,
-    val buttons: List<Config.Button>,
-    val selectMenus: List<Config.SelectMenu>
+    val buttons: List<Button>,
+    val selectMenus: List<SelectMenu>
 ) : ListenerAdapter() {
 
     override fun onMessageReceived(event: MessageReceivedEvent) {
         if (event.channel !is TextChannel) return
-        if (legacyCommands.stream().anyMatch { event.message.contentRaw.startsWith(it) }) {
-            RedisListener.sendCommand(LegacyCommand.fromNative(event.message)) {}
+
+        if (legacyCommands.any { event.message.contentRaw.startsWith(it) }) {
+            RedisListener.sendCommand(LegacyCommand.fromNative(event.message))
         }
 
         if (event.member != null && event.member!!.user.isBot) return
-        if (!event.message.contentRaw.startsWith(prefix)) return
-        for (entry: Map.Entry<TextChannel, Role> in discordHook.channels.entries) {
-            if (entry.key.id == event.channel.id) {
-                var auth = false
-                if (!event.isWebhookMessage) {
-                    for (role in event.member!!.roles) {
-                        if (role.id == entry.value.id) {
-                            auth = true
-                            break
+        if (event.message.contentRaw.startsWith(prefix)) {
+            for (entry: Map.Entry<TextChannel, Role> in discordHook.channels.entries) {
+                if (entry.key.id == event.channel.id) {
+                    var auth = false
+                    if (!event.isWebhookMessage) {
+                        for (role in event.member!!.roles) {
+                            if (role.id == entry.value.id) {
+                                auth = true
+                                break
+                            }
                         }
+                    } else {
+                        auth = true
                     }
-                } else {
-                    auth = true
+                    if (!auth) return
+                    PteroHook.pteroHook.sendCommand(
+                        PteroHook.pteroHook.getServerForChannel(event.channel.id),
+                        event.message.contentRaw.substring(prefix.length)
+                    )
+                    break
                 }
-                if (!auth) return
-                PteroHook.pteroHook.sendCommand(
-                    PteroHook.pteroHook.getServerForChannel(event.channel.id),
-                    event.message.contentRaw.substring(prefix.length)
-                )
-                break
             }
+
+            return
+        }
+
+        if (listenableChannel.contains(event.channel.idLong)) {
+            RedisListener.sendAction(ChannelMessageAction(
+                event.channel.idLong,
+                User.fromNative(event.author, event.member!!, event.member!!.roles),
+                DiscordMessage.fromNative(event.message)
+            ))
         }
     }
 
@@ -55,7 +70,7 @@ class DiscordListener(
         val cmd = commands.firstOrNull { event.name == it.name }
         if (cmd != null) {
             event.deferReply(cmd.ephemeral)
-            RedisListener.sendCommand(SlashCommand.fromNative(event)) {
+            RedisListener.sendCommand(org.zibble.consolelogger.components.messagable.SlashCommand.fromNative(event)) {
                 event.hook.sendMessage(it.message.toNative())
                     .setEphemeral(it.ephemeral)
                     .queue()
@@ -85,7 +100,7 @@ class DiscordListener(
 
     override fun onButtonInteraction(event: ButtonInteractionEvent) {
         val button = buttons.firstOrNull {
-            event.button.id != null && it.id!!.toRegex().matches(event.button.id!!)
+            event.button.id != null && it.id.toRegex().matches(event.button.id!!)
         }
         if (button != null) {
             if (button.replyable)
@@ -93,7 +108,7 @@ class DiscordListener(
 
             RedisListener.sendButtonInteraction(
                 ButtonInteraction(
-                    Button.fromNative(event.button),
+                    org.zibble.consolelogger.components.entity.Button.fromNative(event.button),
                     User.fromNative(event.user, event.member!!, event.member!!.roles),
                     MessageChannel.fromNative(event.channel as TextChannel),
                     event.messageIdLong,
@@ -107,14 +122,14 @@ class DiscordListener(
     }
 
     override fun onStringSelectInteraction(event: StringSelectInteractionEvent) {
-        val menu = selectMenus.firstOrNull { it.id!!.toRegex().matches(event.selectMenu.id!!) }
+        val menu = selectMenus.firstOrNull { it.id.toRegex().matches(event.selectMenu.id!!) }
         if (menu != null) {
             if (menu.replyable)
                 event.deferReply(menu.ephemeral).queue()
 
             RedisListener.sendSelectMenuInteraction(
                 SelectMenuInteraction(
-                    SelectMenu.fromNative(event.selectMenu),
+                    org.zibble.consolelogger.components.entity.SelectMenu.fromNative(event.selectMenu),
                     User.fromNative(event.user, event.member!!, event.member!!.roles),
                     MessageChannel.fromNative(event.channel as TextChannel),
                     event.messageIdLong,
