@@ -12,6 +12,7 @@ import java.awt.Color
 import java.io.File
 import java.io.FileOutputStream
 import java.time.OffsetDateTime
+import java.util.Scanner
 
 class ConsoleLogger(config: Config) {
 
@@ -65,6 +66,11 @@ class ConsoleLogger(config: Config) {
         pteroHook.buildWebSocket()
     }
 
+    fun shutDown() {
+        redis.shutdown()
+        discordHook.jda.shutdown()
+    }
+
 }
 
 fun main() {
@@ -85,4 +91,14 @@ fun main() {
     }
 
     println("BOT STARTED!!!")
+
+    while (true) {
+        val sc = Scanner(System.`in`)
+        val input = sc.nextLine()
+
+        if (input.lowercase() == "stop") {
+            ConsoleLogger.Constant.instance.shutDown()
+            break
+        }
+    }
 }

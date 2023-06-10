@@ -1,6 +1,7 @@
 package org.zibble.consolelogger
 
 import com.google.gson.JsonObject
+import io.lettuce.core.api.async.RedisAsyncCommands
 import io.lettuce.core.pubsub.RedisPubSubAdapter
 import org.zibble.consolelogger.components.action.Action
 import org.zibble.consolelogger.components.action.reply.ActionReply
@@ -23,6 +24,9 @@ class RedisListener : RedisPubSubAdapter<String, String>() {
         const val SELECT_MENU_REPLY = "selectMenuReply"
 
         lateinit var INSTANCE: RedisListener
+        val redisAsyncCommands: RedisAsyncCommands<String, String> by lazy {
+            ConsoleLogger.Constant.instance.redis.connect().async()
+        }
 
         fun sendMessage(json: JsonObject) {
             sendMessage(json.toString())
@@ -30,7 +34,7 @@ class RedisListener : RedisPubSubAdapter<String, String>() {
 
         fun sendMessage(message: String) {
             println("Sending message to redis:\n${message}")
-            ConsoleLogger.Constant.instance.redis.connect().async().publish(
+            redisAsyncCommands.publish(
                 ConsoleLogger.Constant.REDIS_CHANNEL, message
             )
         }
