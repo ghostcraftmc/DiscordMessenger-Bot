@@ -13,6 +13,7 @@ import net.dv8tion.jda.api.interactions.commands.OptionType
 import net.dv8tion.jda.api.interactions.commands.build.Commands
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandData
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandGroupData
+import net.dv8tion.jda.api.requests.GatewayIntent
 import net.dv8tion.jda.api.utils.messages.MessageCreateData
 import okhttp3.internal.threadFactory
 import java.util.concurrent.CompletableFuture
@@ -42,7 +43,7 @@ class DiscordHook(
     init {
         discordHook = this
         jda = JDABuilder
-            .createDefault(token)
+            .create(token, GatewayIntent.values().toList())
             .addEventListeners(DiscordListener(this, prefix, listenableChannels, commands, legacyCommands, button, selectMenu))
             .build()
             .awaitReady()
