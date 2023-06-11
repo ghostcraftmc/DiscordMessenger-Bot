@@ -22,7 +22,7 @@ class DiscordHook(
     servers: List<Servers>,
     prefix: String,
     guildId: String,
-    webhooks: Map<Int, String>,
+    webhooks: List<WebhookMapping>,
     listenableChannels: List<Long>,
     commands: List<SlashCommand>,
     legacyCommands: List<String>,
@@ -50,7 +50,7 @@ class DiscordHook(
         guild = jda.getGuildById(guildId)!!
 
         for (webhook in webhooks) {
-            registerWebhook(webhook.key, webhook.value)
+            registerWebhook(webhook.webhookId, webhook.webhookUrl)
         }
 
         for (cmd in commands) {

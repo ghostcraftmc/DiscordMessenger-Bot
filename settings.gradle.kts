@@ -1,2 +1,2 @@
-rootProject.name = "org.zibble.consolelogger"
+rootProject.name = "DiscordMessenger-Bot"
 

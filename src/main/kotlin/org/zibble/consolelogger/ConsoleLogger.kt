@@ -41,7 +41,7 @@ class ConsoleLogger(config: Config) {
         config.servers,
         config.prefix,
         config.guildId,
-        config.webhooks.mapKeys { it.key.toInt() },
+        config.webhooks,
         config.listenableChannels,
         config.listenableCommands,
         config.legacyCommands,

@@ -11,12 +11,17 @@ data class Config(
     @SerializedName("command-prefix") val prefix: String,
     @SerializedName("server-console-mappings") val servers: List<Servers>,
     @SerializedName("redis") val redis: Redis,
-    @SerializedName("webhook-mapping") val webhooks: Map<String, String>,
+    @SerializedName("webhook-mapping") val webhooks: List<WebhookMapping>,
     @SerializedName("listen-command") val listenableCommands: List<SlashCommand>,
     @SerializedName("legacy-command") val legacyCommands: List<String>,
     @SerializedName("listen-channel") val listenableChannels: List<Long>,
     @SerializedName("buttons") val buttons: List<Button>,
     @SerializedName("select-menu") val selectMenu: List<SelectMenu>
+)
+
+data class WebhookMapping(
+    @SerializedName("id") val webhookId: Int,
+    @SerializedName("url") val webhookUrl: String
 )
 
 data class SelectMenu(

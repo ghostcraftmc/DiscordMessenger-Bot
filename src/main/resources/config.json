@@ -11,7 +11,7 @@
     "username": "",
     "password": ""
   },
-  "webhooks": [],
+  "webhook-mapping": [],
   "listen-command": [],
   "legacy-command": [],
   "listen-channel": [],
